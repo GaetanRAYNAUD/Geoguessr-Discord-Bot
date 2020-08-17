@@ -1,7 +1,9 @@
 package fr.graynaud.geoguessrdiscordbot.service.objects;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateChallengeRequest {
 
     @JsonProperty("map")
