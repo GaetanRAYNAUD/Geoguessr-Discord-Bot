@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
+import fr.graynaud.geoguessrdiscordbot.common.utils.GeoguessrUtils;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +32,14 @@ public class MapsCache {
 
     private final Map<String, GeoguessrMap> geoguessrMapsBySlug = new HashMap<>();
 
-    private final SortedSet<GeoguessrMap> popularMaps = new TreeSet<>(Comparator.comparing(GeoguessrMap::getLikes).reversed());
+    private final Map<String, GeoguessrMap> geoguessrMapsByName = new HashMap<>();
 
-    private List<GeoguessrMap> officialMaps;
+    private final SortedSet<GeoguessrMap> popularMaps = new TreeSet<>(Comparator.comparing(GeoguessrMap::getLikes).reversed());
 
     public MapsCache() {
         try {
             new ObjectMapper().readValue(Constants.POPULAR_FAKE_DATA, new TypeReference<List<GeoguessrMap>>() {}).forEach(this::registerMap);
+            new ObjectMapper().readValue(Constants.POPULAR_FAKE_DATA, new TypeReference<List<GeoguessrMap>>() {}).forEach(this::registerPopularMap);
         } catch (JsonProcessingException e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -68,11 +70,14 @@ public class MapsCache {
         return this.geoguessrMapsBySlug.get(slug);
     }
 
+    public GeoguessrMap getByName(String name) {
+        return this.geoguessrMapsByName.get(GeoguessrUtils.cleanName(name));
+    }
+
     public void registerMap(GeoguessrMap geoguessrMap) {
         this.geoguessrMaps.add(geoguessrMap);
         this.geoguessrMapsBySlug.put(geoguessrMap.getSlug(), geoguessrMap);
-
-        registerPopularMap(geoguessrMap);
+        this.geoguessrMapsByName.put(GeoguessrUtils.cleanName(geoguessrMap.getName()), geoguessrMap);
     }
 
     private void registerPopularMap(GeoguessrMap geoguessrMap) {

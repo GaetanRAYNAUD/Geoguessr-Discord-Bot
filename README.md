@@ -3,4 +3,5 @@ Geoguessr: https://www.geoguessr.com/
 
 Ideas: 
 - Hightscore
-- Complex message with infos on the game/map
+- If can't find map, do search
+- Reactions to launch game

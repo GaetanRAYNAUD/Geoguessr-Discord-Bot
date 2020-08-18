@@ -39,7 +39,7 @@ public class GeoguessrServiceImpl implements GeoguessrService {
         this.gateway.on(MessageCreateEvent.class).subscribe(event -> {
             final Message message = event.getMessage();
 
-            if (message.getChannel().block() != null) {
+            if (message.getChannel().block() != null && message.getAuthor().isPresent() && !message.getAuthor().get().isBot()) {
                 this.consumers.stream()
                               .filter(consumer -> message.getContent().startsWith(Constants.COMMAND_PREFIX))
                               .filter(consumer -> message.getContent().startsWith(Constants.COMMAND_PREFIX + consumer.getCommand()))

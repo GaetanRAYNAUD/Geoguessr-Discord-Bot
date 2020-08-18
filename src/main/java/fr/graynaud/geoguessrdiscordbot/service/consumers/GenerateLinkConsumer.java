@@ -1,27 +1,15 @@
 package fr.graynaud.geoguessrdiscordbot.service.consumers;
 
 import discord4j.core.object.entity.Message;
-import discord4j.rest.util.Color;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
-import fr.graynaud.geoguessrdiscordbot.common.utils.TimeUtils;
+import fr.graynaud.geoguessrdiscordbot.common.utils.DiscordUtils;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
 import fr.graynaud.geoguessrdiscordbot.service.MapsCache;
-import fr.graynaud.geoguessrdiscordbot.service.objects.CreateChallengeRequest;
-import fr.graynaud.geoguessrdiscordbot.service.objects.CreateChallengeResponse;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.Duration;
-import java.time.Instant;
 
 @Component
 public class GenerateLinkConsumer implements MessageConsumer {
@@ -43,19 +31,20 @@ public class GenerateLinkConsumer implements MessageConsumer {
 
     @Override
     public void consume(Message message, ApplicationProperties applicationProperties) {
-        String[] words = message.getContent().substring(Constants.COMMAND_PREFIX.length() + getCommand().length()).trim().split(" ");
+        String content = message.getContent().substring(Constants.COMMAND_PREFIX.length() + getCommand().length()).trim();
 
-        if (words.length < 2) {
+        if (content.indexOf(' ') < 0) {
             message.getRestChannel().createMessage("The command require two parameters: map name, duration of the game ! Ex: "
                                                    + Constants.COMMAND_PREFIX + getCommand() + " world 300").block();
             return;
         }
 
-        String map = words[0];
+        String map = content.substring(0, content.lastIndexOf(' '));
+
         Integer duration;
 
         try {
-            duration = Integer.parseInt(words[1]);
+            duration = Integer.parseInt(content.substring(map.length() + 1));
         } catch (Exception e) {
             message.getRestChannel().createMessage("Could not parse the duration of the game ! Check that you entered a valid number !").block();
             return;
@@ -70,7 +59,20 @@ public class GenerateLinkConsumer implements MessageConsumer {
             duration = null; //Set to null to not send it to Geoguessr
         }
 
-        CreateChallengeRequest createChallengeBody = new CreateChallengeRequest(map, duration);
+        GeoguessrMap geoguessrMap = this.mapsCache.getBySlug(map);
+
+        if (geoguessrMap == null) {
+            geoguessrMap = this.mapsCache.getByName(map);
+        }
+
+        Integer finalDuration = duration;
+        GeoguessrMap finalGeoguessrMap = geoguessrMap;
+        message.getChannel()
+               .block()
+               .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, finalGeoguessrMap, "test", finalDuration))
+               .block();
+
+        /*CreateChallengeRequest createChallengeBody = new CreateChallengeRequest(map, duration);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -100,24 +102,15 @@ public class GenerateLinkConsumer implements MessageConsumer {
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             GeoguessrMap geoguessrMap = this.mapsCache.getBySlug(map);
+            Integer finalDuration = duration;
 
-            String title = geoguessrMap.getName() + " (";
-            title += duration == null ? "Unlimited time)" : TimeUtils.formatDuration(Duration.ofSeconds(duration)) + ")";
-
-            String finalTitle = title;
             message.getChannel()
                    .block()
-                   .createEmbed(spec -> spec.setColor(Color.RED)
-                                            .setTitle(finalTitle)
-                                            .setUrl(Constants.CHALLENGE_URL + response.getBody().getToken())
-                                            .setDescription(geoguessrMap.getDescription()
-                                                            + "\n\nStart game: " + Constants.CHALLENGE_URL + response.getBody().getToken())
-                                            .setImage(Constants.IMAGE_144_URL + geoguessrMap.getCreator().getPin().getUrl())
-                                            .setTimestamp(Instant.now()))
+                   .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, geoguessrMap, response.getBody().getToken(), finalDuration))
                    .block();
         } else {
             LOGGER.error("An error occurred while getting challenge from Geoguessr: {} !", response.toString());
             message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block();
-        }
+        }*/
     }
 }
