@@ -17,6 +17,7 @@
   <properties>
     <java.version>11</java.version>
     <discord4j.version>3.1.0</discord4j.version>
+    <common-langs.version>3.11</common-langs.version>
   </properties>
 
   <dependencies>
@@ -47,6 +48,12 @@
       <artifactId>discord4j-core</artifactId>
       <version>${discord4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${common-langs.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>

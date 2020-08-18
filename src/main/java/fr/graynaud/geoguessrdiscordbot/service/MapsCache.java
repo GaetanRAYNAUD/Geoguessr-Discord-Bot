@@ -64,6 +64,10 @@ public class MapsCache {
         return popularMaps;
     }
 
+    public GeoguessrMap getBySlug(String slug) {
+        return this.geoguessrMapsBySlug.get(slug);
+    }
+
     public void registerMap(GeoguessrMap geoguessrMap) {
         this.geoguessrMaps.add(geoguessrMap);
         this.geoguessrMapsBySlug.put(geoguessrMap.getSlug(), geoguessrMap);

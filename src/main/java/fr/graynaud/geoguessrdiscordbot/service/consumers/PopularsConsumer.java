@@ -1,11 +1,13 @@
 package fr.graynaud.geoguessrdiscordbot.service.consumers;
 
 import discord4j.core.object.entity.Message;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
 import fr.graynaud.geoguessrdiscordbot.service.MapsCache;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -30,31 +32,22 @@ public class PopularsConsumer implements MessageConsumer {
 
     @Override
     public void consume(Message message, ApplicationProperties applicationProperties) {
-        StringBuilder description = new StringBuilder();
+        message.getChannel().block().createEmbed(this::generateMessage).block();
+    }
+
+    private void generateMessage(EmbedCreateSpec spec) {
+        spec.setColor(Color.RED)
+            .setTitle("Geoguessr popular maps")
+            .setUrl(Constants.POPULAR_MAPS_URL)
+            .setTimestamp(Instant.now());
 
         int i = 1;
 
         for (GeoguessrMap map : this.mapsCache.getPopularMaps()) {
-            description.append("[")
-                       .append(i)
-                       .append(". ")
-                       .append(map.getName())
-                       .append(" (")
-                       .append(map.getLikes())
-                       .append(" ❤)")
-                       .append("](")
-                       .append(Constants.MAP_URL)
-                       .append(map.getSlug())
-                       .append(")")
-                       .append("\n");
+            spec.addField(i + ". " + map.getName(),
+                          StringUtils.defaultIfBlank(map.getDescription(), map.getName()) + "\n[Link](" + Constants.MAP_URL + map.getSlug() + ")",
+                          false);
             i++;
         }
-
-        message.getChannel().block().createEmbed(spec -> spec.setColor(Color.RED)
-                                                             .setTitle("Geoguessr popular maps")
-                                                             .setUrl(Constants.POPULAR_MAPS_URL)
-                                                             .setDescription(description.toString())
-                                                             .setTimestamp(Instant.now())
-                                                ).block();
     }
 }

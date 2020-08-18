@@ -51,7 +51,7 @@ public class GeoguessrMap {
     private Object regions;
 
     @JsonProperty("creator")
-    private Object creator;
+    private Creator creator;
 
     @JsonProperty("created")
     private String created;
@@ -66,7 +66,7 @@ public class GeoguessrMap {
     private Integer likes;
 
     @JsonProperty("likedByUser")
-    private Object likedByUser;
+    private Boolean likedByUser;
 
     @JsonProperty("averageScore")
     private Integer averageScore;
@@ -207,11 +207,11 @@ public class GeoguessrMap {
         this.regions = regions;
     }
 
-    public Object getCreator() {
+    public Creator getCreator() {
         return creator;
     }
 
-    public void setCreator(Object creator) {
+    public void setCreator(Creator creator) {
         this.creator = creator;
     }
 
@@ -247,11 +247,11 @@ public class GeoguessrMap {
         this.likes = likes;
     }
 
-    public Object getLikedByUser() {
+    public Boolean getLikedByUser() {
         return likedByUser;
     }
 
-    public void setLikedByUser(Object likedByUser) {
+    public void setLikedByUser(Boolean likedByUser) {
         this.likedByUser = likedByUser;
     }
 

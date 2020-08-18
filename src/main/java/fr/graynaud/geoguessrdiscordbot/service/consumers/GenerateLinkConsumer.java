@@ -1,11 +1,14 @@
 package fr.graynaud.geoguessrdiscordbot.service.consumers;
 
 import discord4j.core.object.entity.Message;
+import discord4j.rest.util.Color;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
+import fr.graynaud.geoguessrdiscordbot.common.utils.TimeUtils;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
 import fr.graynaud.geoguessrdiscordbot.service.MapsCache;
 import fr.graynaud.geoguessrdiscordbot.service.objects.CreateChallengeRequest;
 import fr.graynaud.geoguessrdiscordbot.service.objects.CreateChallengeResponse;
+import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -16,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
 public class GenerateLinkConsumer implements MessageConsumer {
@@ -93,7 +99,22 @@ public class GenerateLinkConsumer implements MessageConsumer {
         }
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            message.getRestChannel().createMessage(Constants.CHALLENGE_URL + response.getBody().getToken()).block();
+            GeoguessrMap geoguessrMap = this.mapsCache.getBySlug(map);
+
+            String title = geoguessrMap.getName() + " (";
+            title += duration == null ? "Unlimited time)" : TimeUtils.formatDuration(Duration.ofSeconds(duration)) + ")";
+
+            String finalTitle = title;
+            message.getChannel()
+                   .block()
+                   .createEmbed(spec -> spec.setColor(Color.RED)
+                                            .setTitle(finalTitle)
+                                            .setUrl(Constants.CHALLENGE_URL + response.getBody().getToken())
+                                            .setDescription(geoguessrMap.getDescription()
+                                                            + "\n\nStart game: " + Constants.CHALLENGE_URL + response.getBody().getToken())
+                                            .setImage(Constants.IMAGE_144_URL + geoguessrMap.getCreator().getPin().getUrl())
+                                            .setTimestamp(Instant.now()))
+                   .block();
         } else {
             LOGGER.error("An error occurred while getting challenge from Geoguessr: {} !", response.toString());
             message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block();
