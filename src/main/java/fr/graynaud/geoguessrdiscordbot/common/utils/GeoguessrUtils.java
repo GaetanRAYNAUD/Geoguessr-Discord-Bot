@@ -12,4 +12,8 @@ public final class GeoguessrUtils {
         name = name.toLowerCase();
         return name.trim();
     }
+
+    public static String cleanToUrl(String name) {
+        return cleanName(name).replace(' ', '-');
+    }
 }

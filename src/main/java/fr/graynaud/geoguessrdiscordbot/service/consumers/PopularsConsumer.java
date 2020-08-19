@@ -6,8 +6,6 @@ import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.common.utils.DiscordUtils;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
 import fr.graynaud.geoguessrdiscordbot.service.MapsCache;
-import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -37,14 +35,6 @@ public class PopularsConsumer implements MessageConsumer {
         DiscordUtils.generalEmbedMessage(spec);
         spec.setTitle("Geoguessr popular maps");
         spec.setUrl(Constants.POPULAR_MAPS_URL);
-
-        int i = 1;
-
-        for (GeoguessrMap map : this.mapsCache.getPopularMaps()) {
-            spec.addField(i + ". " + map.getName(),
-                          StringUtils.defaultIfBlank(map.getDescription(), map.getName()) + "\n[Map link](" + Constants.MAP_URL + map.getSlug() + ")",
-                          false);
-            i++;
-        }
+        DiscordUtils.addGeoguessrMapsToEmbedDescription(spec, this.mapsCache.getPopularMaps());
     }
 }

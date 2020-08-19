@@ -4,11 +4,12 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
+import fr.graynaud.geoguessrdiscordbot.service.objects.SearchMapResult;
 import org.apache.commons.lang3.StringUtils;
 
-import java.text.Normalizer;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 
 public final class DiscordUtils {
 
@@ -34,24 +35,61 @@ public final class DiscordUtils {
             spec.setThumbnail(Constants.IMAGE_144_URL + geoguessrMap.getImages().getBackgroundLarge());
         }
 
-        if (geoguessrMap.getLikes() != null) {
-            spec.addField(":heart: Likes", geoguessrMap.getLikes().toString(), true);
+        addMapMetaFields(spec, geoguessrMap);
+    }
+
+    public static void addGeoguessrMapsToEmbedDescription(EmbedCreateSpec spec, Collection<GeoguessrMap> maps) {
+        int i = 1;
+        for (GeoguessrMap map : maps) {
+            spec.addField(i + ". " + map.getName(),
+                          StringUtils.defaultIfBlank(map.getDescription(), map.getName()) + "\n[Map link](" + Constants.MAP_URL + map.getSlug() + ")",
+                          false);
+            i++;
+        }
+    }
+
+    public static void addMapMetaFields(EmbedCreateSpec spec, GeoguessrMap map) {
+        if (map.getCreator() != null && StringUtils.isNotBlank(map.getCreator().getNick())) {
+            spec.addField("✍ Creator", map.getCreator().getNick(), true);
         }
 
-        if (geoguessrMap.getDifficultyLevel() != null) {
-            spec.addField(":chart_with_upwards_trend: Difficulty", geoguessrMap.getDifficulty(), true);
+        if (map.getLikes() != null) {
+            spec.addField(":heart: Likes", map.getLikes().toString(), true);
         }
 
-        if (geoguessrMap.getAverageScore() != null) {
-            spec.addField("\uD83D\uDCAF Average score", geoguessrMap.getAverageScore().toString(), true);
+        if (map.getDifficultyLevel() != null) {
+            spec.addField(":chart_with_upwards_trend: Difficulty", map.getDifficulty(), true);
         }
 
-        if (geoguessrMap.getNumFinishedGames() != null) {
-            spec.addField("\uD83C\uDFC1 Finished games", geoguessrMap.getNumFinishedGames().toString(), true);
+        if (map.getAverageScore() != null) {
+            spec.addField("\uD83D\uDCAF Average score", map.getAverageScore().toString(), true);
         }
 
-        if (StringUtils.isNotBlank(geoguessrMap.getCoordinateCount()) && !"-".equals(geoguessrMap.getCoordinateCount())) {
-            spec.addField("\uD83D\uDCCD Number of coordinates", geoguessrMap.getCoordinateCount(), true);
+        if (map.getNumFinishedGames() != null) {
+            spec.addField("\uD83C\uDFC1 Finished games", map.getNumFinishedGames().toString(), true);
+        }
+
+        if (StringUtils.isNotBlank(map.getCoordinateCount()) && !"-".equals(map.getCoordinateCount())) {
+            spec.addField("\uD83D\uDCCD Number of coordinates", map.getCoordinateCount(), true);
+        }
+    }
+
+    public static void addSearchMapToEmbedDescription(EmbedCreateSpec spec, Collection<SearchMapResult> maps) {
+        int i = 1;
+        for (SearchMapResult map : maps) {
+            spec.addField(i + ". " + map.getName(),
+                          "[Map link](" + Constants.GEOGUESSR_URL + map.getUrl() + ")",
+                          false);
+
+            if (map.getLikes() != null) {
+                spec.addField(":heart: Likes", map.getLikes().toString(), true);
+            }
+
+            if (StringUtils.isNotBlank(map.getCreator())) {
+                spec.addField("✍ Creator", map.getCreator(), true);
+            }
+
+            i++;
         }
     }
 

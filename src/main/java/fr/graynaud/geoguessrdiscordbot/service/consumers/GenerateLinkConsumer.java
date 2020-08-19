@@ -3,25 +3,28 @@ package fr.graynaud.geoguessrdiscordbot.service.consumers;
 import discord4j.core.object.entity.Message;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.common.utils.DiscordUtils;
+import fr.graynaud.geoguessrdiscordbot.common.utils.GeoguessrUtils;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
-import fr.graynaud.geoguessrdiscordbot.service.MapsCache;
+import fr.graynaud.geoguessrdiscordbot.service.GeoguessrService;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
+import fr.graynaud.geoguessrdiscordbot.service.objects.SearchMapResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Component
 public class GenerateLinkConsumer implements MessageConsumer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GenerateLinkConsumer.class);
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final GeoguessrService geoguessrService;
 
-    private final MapsCache mapsCache;
-
-    public GenerateLinkConsumer(MapsCache mapsCache) {
-        this.mapsCache = mapsCache;
+    public GenerateLinkConsumer(GeoguessrService geoguessrService) {
+        this.geoguessrService = geoguessrService;
     }
 
     @Override
@@ -59,58 +62,37 @@ public class GenerateLinkConsumer implements MessageConsumer {
             duration = null; //Set to null to not send it to Geoguessr
         }
 
-        GeoguessrMap geoguessrMap = this.mapsCache.getBySlug(map);
+        GeoguessrMap geoguessrMap = this.geoguessrService.getMap(map);
 
-        if (geoguessrMap == null) {
-            geoguessrMap = this.mapsCache.getByName(map);
-        }
+        if (geoguessrMap != null) {
+            try {
+                String token = this.geoguessrService.getGameToken(geoguessrMap, duration);
 
-        Integer finalDuration = duration;
-        GeoguessrMap finalGeoguessrMap = geoguessrMap;
-        message.getChannel()
-               .block()
-               .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, finalGeoguessrMap, "test", finalDuration))
-               .block();
-
-        /*CreateChallengeRequest createChallengeBody = new CreateChallengeRequest(map, duration);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        headers.add(HttpHeaders.COOKIE, Constants._NCFA + "=" + applicationProperties.getGeoguessrNcfa());
-
-        HttpEntity<CreateChallengeRequest> httpEntity = new HttpEntity<>(createChallengeBody, headers);
-
-        ResponseEntity<CreateChallengeResponse> response;
-
-        try {
-            response = this.restTemplate.exchange(Constants.GENERATE_TOKEN_URL, HttpMethod.POST, httpEntity, CreateChallengeResponse.class);
-        } catch (HttpClientErrorException.BadRequest e) {
-            if (e.getMessage() != null && e.getMessage().contains("InvalidParameters")) {
-                LOGGER.error("An error occurred while getting challenge from Geoguessr: {} !", e.getMessage(), e);
-                message.getRestChannel().createMessage("The map __**" + map + "**__ does not exist ! Check your message again !").block();
-            } else {
-                LOGGER.error("An error occurred while getting challenge from Geoguessr: {} !", e.getMessage(), e);
-                message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block();
+                Integer finalDuration = duration;
+                message.getChannel()
+                       .block()
+                       .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, geoguessrMap, token, finalDuration))
+                       .block(Duration.of(1, ChronoUnit.SECONDS));
+            } catch (Exception e) {
+                message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block(Duration.of(3, ChronoUnit.SECONDS));
             }
-
-            return;
-        } catch (Exception e) {
-            LOGGER.error("An error occurred while getting challenge from Geoguessr: {} !", e.getMessage(), e);
-            message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block();
-            return;
-        }
-
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            GeoguessrMap geoguessrMap = this.mapsCache.getBySlug(map);
-            Integer finalDuration = duration;
-
-            message.getChannel()
-                   .block()
-                   .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, geoguessrMap, response.getBody().getToken(), finalDuration))
-                   .block();
         } else {
-            LOGGER.error("An error occurred while getting challenge from Geoguessr: {} !", response.toString());
-            message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block();
-        }*/
+            List<SearchMapResult> geoguessrMaps = this.geoguessrService.searchMaps(map);
+
+            if (geoguessrMaps.isEmpty()) {
+                message.getRestChannel()
+                       .createMessage("The map __**" + map + "**__ does not exist ! Check your message again !")
+                       .block(Duration.of(3, ChronoUnit.SECONDS));
+            } else {
+                message.getChannel().block().createEmbed(spec -> {
+                    DiscordUtils.generalEmbedMessage(spec);
+                    spec.setTitle("Geoguessr maps");
+                    spec.setUrl(Constants.SEARCH_URL + "?query=" + GeoguessrUtils.cleanToUrl(map));
+                    spec.setDescription("Could not find a map with name __**" + map + "**__.\n" +
+                                        "Did you mean one of the following map ? (Add a reaction to generate a game !)");
+                    DiscordUtils.addSearchMapToEmbedDescription(spec, geoguessrMaps);
+                }).block();
+            }
+        }
     }
 }

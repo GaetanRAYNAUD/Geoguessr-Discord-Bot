@@ -5,7 +5,11 @@ public final class Constants {
     private Constants() {}
 
     public static final String COMMAND_PREFIX = "!geo ";
+    public static final String GEOGUESSR_URL = "https://www.geoguessr.com";
+    public static final String SEARCH_URL = "https://www.geoguessr.com/search";
     public static final String API_POPULAR_MAPS_URL = "https://www.geoguessr.com/api/v3/social/maps/browse/popular/all";
+    public static final String API_MAPS_URL = "https://www.geoguessr.com/api/maps/";
+    public static final String API_SEARCH_MAPS_URL = "https://www.geoguessr.com/api/v3/search/map";
     public static final String GENERATE_TOKEN_URL = "https://www.geoguessr.com/api/v3/challenges";
     public static final String POPULAR_MAPS_URL = "https://www.geoguessr.com/maps/popular";
     public static final String MAP_URL = "https://www.geoguessr.com/maps/";

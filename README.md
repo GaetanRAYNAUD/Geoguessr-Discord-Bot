@@ -3,5 +3,5 @@ Geoguessr: https://www.geoguessr.com/
 
 Ideas: 
 - Hightscore
-- If can't find map, do search
 - Reactions to launch game
+- Help consumer, get all consumers and add getDescription and getExample to interface
