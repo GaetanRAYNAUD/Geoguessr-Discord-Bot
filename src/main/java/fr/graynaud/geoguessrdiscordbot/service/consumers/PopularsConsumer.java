@@ -19,7 +19,7 @@ public class PopularsConsumer implements MessageConsumer {
 
     @Override
     public String getDescription() {
-        return "Display the list of most popular maps of Geoguessr ! Which one will you play ?";
+        return "Display the list of most populars maps of Geoguessr ! Which one will you play ?";
     }
 
     @Override
