@@ -57,7 +57,7 @@ public class GeoguessrServiceImpl implements GeoguessrService {
 
             if (geoguessrMap == null) {
                 try {
-                    ResponseEntity<GeoguessrMap> response = restTemplate.getForEntity(Constants.API_MAPS_URL + GeoguessrUtils.cleanToUrl(slug),
+                    ResponseEntity<GeoguessrMap> response = this.restTemplate.getForEntity(Constants.API_MAPS_URL + GeoguessrUtils.cleanToUrl(slug),
                                                                                       GeoguessrMap.class);
 
                     if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -75,7 +75,7 @@ public class GeoguessrServiceImpl implements GeoguessrService {
             }
         }
 
-        return null;
+        return geoguessrMap;
     }
 
     @Override
@@ -98,10 +98,11 @@ public class GeoguessrServiceImpl implements GeoguessrService {
     public List<SearchMapResult> searchMaps(String query) {
         try {
             HttpEntity<Void> httpEntity = new HttpEntity<>(null, this.httpHeaders);
-            ResponseEntity<List<SearchMapResult>> response = restTemplate.exchange(this.searchUriBuilder.cloneBuilder().queryParam("q", query).build().toUri(),
+            ResponseEntity<List<SearchMapResult>> response = this.restTemplate.exchange(this.searchUriBuilder.cloneBuilder().queryParam("q", query).build().toUri(),
                                                                                    HttpMethod.GET, httpEntity, new ParameterizedTypeReference<>() {});
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                response.getBody().forEach(searchMapResult -> this.getMap(searchMapResult.id));
                 return response.getBody();
             }
 

@@ -1,17 +1,18 @@
 package fr.graynaud.geoguessrdiscordbot.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.common.utils.GeoguessrUtils;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +27,6 @@ public class MapsCache {
 
     private static final int POPULAR_SIZE = 10;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    private final List<GeoguessrMap> geoguessrMaps = new ArrayList<>();
-
     private final Map<String, GeoguessrMap> geoguessrMapsBySlug = new HashMap<>();
 
     private final Map<String, GeoguessrMap> geoguessrMapsByName = new HashMap<>();
@@ -38,28 +35,24 @@ public class MapsCache {
 
     public MapsCache() {
         try {
-            new ObjectMapper().readValue(Constants.POPULAR_FAKE_DATA, new TypeReference<List<GeoguessrMap>>() {}).forEach(this::registerMap);
-            new ObjectMapper().readValue(Constants.POPULAR_FAKE_DATA, new TypeReference<List<GeoguessrMap>>() {}).forEach(this::registerPopularMap);
-        } catch (JsonProcessingException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-/*        try {
             URI uri = UriComponentsBuilder.fromUriString(Constants.API_POPULAR_MAPS_URL)
                                           .queryParam("page", 0)
                                           .queryParam("count", 10)
                                           .build()
                                           .toUri();
 
-            ResponseEntity<List<GeoguessrMap>> responsePopulars = this.restTemplate.exchange(uri, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<List<GeoguessrMap>> responsePopulars = restTemplate.exchange(uri, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
 
             if (responsePopulars.getStatusCode().is2xxSuccessful() && responsePopulars.getBody() != null) {
                 responsePopulars.getBody().forEach(this::registerMap);
+                responsePopulars.getBody().forEach(this::registerPopularMap);
             } else {
                 LOGGER.error("An error occurred while getting popular maps from Geoguessr: {} !", responsePopulars.toString());
             }
         } catch (Exception e) {
             LOGGER.error("An error occurred while initialization: {} !", e.getMessage(), e);
-        }*/
+        }
     }
 
     public SortedSet<GeoguessrMap> getPopularMaps() {
@@ -75,9 +68,8 @@ public class MapsCache {
     }
 
     public void registerMap(GeoguessrMap geoguessrMap) {
-        this.geoguessrMaps.add(geoguessrMap);
         this.geoguessrMapsBySlug.put(geoguessrMap.getSlug(), geoguessrMap);
-        this.geoguessrMapsByName.put(GeoguessrUtils.cleanName(geoguessrMap.getName()), geoguessrMap);
+        this.geoguessrMapsByName.putIfAbsent(GeoguessrUtils.cleanName(geoguessrMap.getName()), geoguessrMap);
     }
 
     private void registerPopularMap(GeoguessrMap geoguessrMap) {

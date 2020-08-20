@@ -6,19 +6,25 @@ import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.common.utils.DiscordUtils;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
 import fr.graynaud.geoguessrdiscordbot.service.MapsCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PopularsConsumer implements MessageConsumer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PopularsConsumer.class);
-
     private final MapsCache mapsCache;
 
     public PopularsConsumer(MapsCache mapsCache) {
         this.mapsCache = mapsCache;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Display the list of most popular maps of Geoguessr ! Which one will you play ?";
+    }
+
+    @Override
+    public String getExample() {
+        return getCommand();
     }
 
     @Override

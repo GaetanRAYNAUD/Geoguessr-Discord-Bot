@@ -2,14 +2,20 @@ package fr.graynaud.geoguessrdiscordbot.service.consumers;
 
 import discord4j.core.object.entity.Message;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HelloConsumer implements MessageConsumer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HelloConsumer.class);
+    @Override
+    public String getDescription() {
+        return "Hello !";
+    }
+
+    @Override
+    public String getExample() {
+        return getCommand();
+    }
 
     @Override
     public String getCommand() {
@@ -19,7 +25,7 @@ public class HelloConsumer implements MessageConsumer {
     @Override
     public void consume(Message message, ApplicationProperties applicationProperties) {
         if (message.getAuthor().isPresent()) {
-            message.getRestChannel().createMessage("Hello " + message.getAuthor().get().getUsername() + " !").block();
+            message.getRestChannel().createMessage("Hello <@" + message.getAuthor().get().getId().asString() + "> !").block();
         } else {
             message.getRestChannel().createMessage("Hello !").block();
         }

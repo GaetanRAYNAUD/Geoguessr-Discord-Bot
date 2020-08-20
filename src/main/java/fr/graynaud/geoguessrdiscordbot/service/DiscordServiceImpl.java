@@ -21,16 +21,13 @@ public class DiscordServiceImpl implements DiscordService {
 
     private final ApplicationProperties applicationProperties;
 
-    private final DiscordClient client;
-
     private final GatewayDiscordClient gateway;
 
     private final List<MessageConsumer> consumers;
 
     public DiscordServiceImpl(ApplicationProperties applicationProperties, List<MessageConsumer> consumers) {
         this.applicationProperties = applicationProperties;
-        this.client = DiscordClient.create(this.applicationProperties.getDiscordToken());
-        this.gateway = this.client.login().block();
+        this.gateway = DiscordClient.create(this.applicationProperties.getDiscordToken()).login().block();
         this.consumers = consumers;
 
         subscribeToMessages();

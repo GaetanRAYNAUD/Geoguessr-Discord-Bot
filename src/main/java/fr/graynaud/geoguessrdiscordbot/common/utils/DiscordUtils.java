@@ -3,6 +3,7 @@ package fr.graynaud.geoguessrdiscordbot.common.utils;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
+import fr.graynaud.geoguessrdiscordbot.service.consumers.MessageConsumer;
 import fr.graynaud.geoguessrdiscordbot.service.objects.GeoguessrMap;
 import fr.graynaud.geoguessrdiscordbot.service.objects.SearchMapResult;
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +15,13 @@ import java.util.Collection;
 public final class DiscordUtils {
 
     private DiscordUtils() {}
+
+    public static String consumerToHelpDescription(MessageConsumer consumer) {
+        String description = "__** " + StringUtils.capitalize(consumer.getCommand()) + "**__:\n";
+        description += consumer.getDescription() + "\n";
+        description += "\nExample: " + Constants.COMMAND_PREFIX + consumer.getExample() + "\n";
+        return description;
+    }
 
     public static void geoMapToEmbedMessage(EmbedCreateSpec spec, GeoguessrMap geoguessrMap, String token, Integer duration) {
         if (spec == null || geoguessrMap == null || StringUtils.isBlank(token)) {
@@ -27,9 +35,12 @@ public final class DiscordUtils {
 
         spec.setTitle(title);
         spec.setUrl(Constants.CHALLENGE_URL + token);
-        spec.setDescription(geoguessrMap.getDescription());
         spec.addField("Start game", Constants.CHALLENGE_URL + token, false);
         spec.addField("Map link", Constants.MAP_URL + geoguessrMap.getSlug(), false);
+
+        if (geoguessrMap.getDescription() != null) {
+            spec.setDescription(geoguessrMap.getDescription());
+        }
 
         if (geoguessrMap.getImages() != null && StringUtils.isNotBlank(geoguessrMap.getImages().getBackgroundLarge())) {
             spec.setThumbnail(Constants.IMAGE_144_URL + geoguessrMap.getImages().getBackgroundLarge());

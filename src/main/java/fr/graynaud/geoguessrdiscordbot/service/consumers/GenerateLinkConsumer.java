@@ -28,6 +28,16 @@ public class GenerateLinkConsumer implements MessageConsumer {
     }
 
     @Override
+    public String getDescription() {
+        return "Generate a game link of the provided map and duration. How high will you score ?!";
+    }
+
+    @Override
+    public String getExample() {
+        return getCommand() + " a diverse world 300";
+    }
+
+    @Override
     public String getCommand() {
         return "play";
     }
@@ -63,34 +73,41 @@ public class GenerateLinkConsumer implements MessageConsumer {
         }
 
         GeoguessrMap geoguessrMap = this.geoguessrService.getMap(map);
+        List<SearchMapResult> geoguessrMaps = null;
+
+        if (geoguessrMap == null) {
+            geoguessrMaps = this.geoguessrService.searchMaps(map);
+            geoguessrMap = this.geoguessrService.getMap(map);
+        }
 
         if (geoguessrMap != null) {
             try {
                 String token = this.geoguessrService.getGameToken(geoguessrMap, duration);
 
                 Integer finalDuration = duration;
+                GeoguessrMap finalGeoguessrMap = geoguessrMap;
                 message.getChannel()
                        .block()
-                       .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, geoguessrMap, token, finalDuration))
+                       .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, finalGeoguessrMap, token, finalDuration))
                        .block(Duration.of(1, ChronoUnit.SECONDS));
             } catch (Exception e) {
+                LOGGER.error("An error occurred while creating game {}: {} !", map, e.getMessage(), e);
                 message.getRestChannel().createMessage("Couldn't create the game ! Check your message again !").block(Duration.of(3, ChronoUnit.SECONDS));
             }
         } else {
-            List<SearchMapResult> geoguessrMaps = this.geoguessrService.searchMaps(map);
-
-            if (geoguessrMaps.isEmpty()) {
+            if (geoguessrMaps == null || geoguessrMaps.isEmpty()) {
                 message.getRestChannel()
                        .createMessage("The map __**" + map + "**__ does not exist ! Check your message again !")
                        .block(Duration.of(3, ChronoUnit.SECONDS));
             } else {
+                List<SearchMapResult> finalGeoguessrMaps = geoguessrMaps;
                 message.getChannel().block().createEmbed(spec -> {
                     DiscordUtils.generalEmbedMessage(spec);
                     spec.setTitle("Geoguessr maps");
                     spec.setUrl(Constants.SEARCH_URL + "?query=" + GeoguessrUtils.cleanToUrl(map));
                     spec.setDescription("Could not find a map with name __**" + map + "**__.\n" +
                                         "Did you mean one of the following map ? (Add a reaction to generate a game !)");
-                    DiscordUtils.addSearchMapToEmbedDescription(spec, geoguessrMaps);
+                    DiscordUtils.addSearchMapToEmbedDescription(spec, finalGeoguessrMaps);
                 }).block();
             }
         }

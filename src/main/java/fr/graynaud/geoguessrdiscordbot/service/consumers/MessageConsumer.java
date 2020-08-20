@@ -8,4 +8,8 @@ public interface MessageConsumer {
     String getCommand();
 
     void consume(Message message, ApplicationProperties applicationProperties);
+
+    String getDescription();
+
+    String getExample();
 }
