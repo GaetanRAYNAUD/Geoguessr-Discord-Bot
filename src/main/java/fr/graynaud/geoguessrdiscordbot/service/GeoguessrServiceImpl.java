@@ -80,7 +80,12 @@ public class GeoguessrServiceImpl implements GeoguessrService {
 
     @Override
     public String getGameToken(GeoguessrMap geoguessrMap, Integer duration) {
-        CreateChallengeRequest createChallengeBody = new CreateChallengeRequest(geoguessrMap.getSlug(), duration);
+        return getGameToken(geoguessrMap, duration, false, false);
+    }
+
+    @Override
+    public String getGameToken(GeoguessrMap geoguessrMap, Integer duration, boolean isCountryStreak, boolean forbidMoving) {
+        CreateChallengeRequest createChallengeBody = new CreateChallengeRequest(geoguessrMap.getSlug(), duration, isCountryStreak, forbidMoving);
 
         HttpEntity<CreateChallengeRequest> httpEntity = new HttpEntity<>(createChallengeBody, this.httpHeaders);
 

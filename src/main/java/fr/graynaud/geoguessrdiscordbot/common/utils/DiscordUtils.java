@@ -23,7 +23,8 @@ public final class DiscordUtils {
         return description;
     }
 
-    public static void geoMapToEmbedMessage(EmbedCreateSpec spec, GeoguessrMap geoguessrMap, String token, Integer duration) {
+    public static void geoMapToEmbedMessage(EmbedCreateSpec spec, GeoguessrMap geoguessrMap, String token, Integer duration, boolean isCountryStreak,
+                                            boolean forbidMoving) {
         if (spec == null || geoguessrMap == null || StringUtils.isBlank(token)) {
             return;
         }
@@ -31,12 +32,16 @@ public final class DiscordUtils {
         DiscordUtils.generalEmbedMessage(spec);
 
         String title = geoguessrMap.getName() + " (";
-        title += duration == null ? "Unlimited time)" : TimeUtils.formatDuration(Duration.ofSeconds(duration)) + ")";
+        title += (duration == null ? "Unlimited time" : TimeUtils.formatDuration(Duration.ofSeconds(duration))) + ","
+                 + (forbidMoving ? " moving forbidden" : " moving allowed") + ")";
 
         spec.setTitle(title);
         spec.setUrl(Constants.CHALLENGE_URL + token);
         spec.addField("Start game", Constants.CHALLENGE_URL + token, false);
-        spec.addField("Map link", Constants.MAP_URL + geoguessrMap.getSlug(), false);
+
+        if (!isCountryStreak) {
+            spec.addField("Map link", Constants.MAP_URL + geoguessrMap.getSlug(), false);
+        }
 
         if (geoguessrMap.getDescription() != null) {
             spec.setDescription(geoguessrMap.getDescription());

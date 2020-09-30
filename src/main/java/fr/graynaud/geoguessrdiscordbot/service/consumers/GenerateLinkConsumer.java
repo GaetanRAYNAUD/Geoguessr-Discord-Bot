@@ -29,12 +29,12 @@ public class GenerateLinkConsumer implements MessageConsumer {
 
     @Override
     public String getDescription() {
-        return "Generate a game link of the provided map and duration. How high will you score ?!";
+        return "Generate a game link of the provided map, duration and moving rule. How high will you score ?!";
     }
 
     @Override
     public String getExample() {
-        return getCommand() + " a diverse world 300";
+        return getCommand() + " a diverse world 300 false";
     }
 
     @Override
@@ -47,17 +47,20 @@ public class GenerateLinkConsumer implements MessageConsumer {
         String content = message.getContent().substring(Constants.COMMAND_PREFIX.length() + getCommand().length()).trim();
 
         if (content.indexOf(' ') < 0) {
-            message.getRestChannel().createMessage("The command require two parameters: map name, duration of the game ! Ex: "
-                                                   + Constants.COMMAND_PREFIX + getCommand() + " world 300").block();
+            message.getRestChannel().createMessage("The command require three parameters: map name, duration of the game and moving rule ! Ex: "
+                                                   + Constants.COMMAND_PREFIX + getExample()).block();
             return;
         }
 
-        String map = content.substring(0, content.lastIndexOf(' '));
+        int lastSpace = content.lastIndexOf(' ');
+        boolean forbidMoving = Boolean.parseBoolean(content.substring(lastSpace + 1));
+        int previousLastSpace = content.substring(0, lastSpace).lastIndexOf(' ');
+        String map = content.substring(0, previousLastSpace);
 
         Integer duration;
 
         try {
-            duration = Integer.parseInt(content.substring(map.length() + 1));
+            duration = Integer.parseInt(content.substring(previousLastSpace + 1, lastSpace));
         } catch (Exception e) {
             message.getRestChannel().createMessage("Could not parse the duration of the game ! Check that you entered a valid number !").block();
             return;
@@ -82,13 +85,13 @@ public class GenerateLinkConsumer implements MessageConsumer {
 
         if (geoguessrMap != null) {
             try {
-                String token = this.geoguessrService.getGameToken(geoguessrMap, duration);
+                String token = this.geoguessrService.getGameToken(geoguessrMap, duration, false, forbidMoving);
 
                 Integer finalDuration = duration;
                 GeoguessrMap finalGeoguessrMap = geoguessrMap;
                 message.getChannel()
                        .block()
-                       .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, finalGeoguessrMap, token, finalDuration))
+                       .createEmbed(spec -> DiscordUtils.geoMapToEmbedMessage(spec, finalGeoguessrMap, token, finalDuration, false, forbidMoving))
                        .block(Duration.of(1, ChronoUnit.SECONDS));
             } catch (Exception e) {
                 LOGGER.error("An error occurred while creating game {}: {} !", map, e.getMessage(), e);

@@ -11,5 +11,7 @@ public interface GeoguessrService {
 
     String getGameToken(GeoguessrMap geoguessrMap, Integer duration);
 
+    String getGameToken(GeoguessrMap geoguessrMap, Integer duration, boolean isCountryStreak, boolean forbidMoving);
+
     List<SearchMapResult> searchMaps(String query);
 }

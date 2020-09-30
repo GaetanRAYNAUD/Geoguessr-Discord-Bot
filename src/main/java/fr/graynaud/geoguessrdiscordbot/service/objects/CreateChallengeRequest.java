@@ -12,14 +12,31 @@ public class CreateChallengeRequest {
     @JsonProperty("timeLimit")
     private final Integer duration;
 
+    @JsonProperty("isCountryStreak")
+    private final boolean isCountryStreak;
+
+    @JsonProperty("forbidMoving")
+    private final boolean forbidMoving;
+
     public CreateChallengeRequest(String mapId) {
         this.mapId = mapId;
         this.duration = null;
+        this.isCountryStreak = false;
+        this.forbidMoving = false;
     }
 
     public CreateChallengeRequest(String mapId, Integer duration) {
         this.mapId = mapId;
         this.duration = duration;
+        this.isCountryStreak = false;
+        this.forbidMoving = false;
+    }
+
+    public CreateChallengeRequest(String mapId, Integer duration, boolean isCountryStreak, boolean forbidMoving) {
+        this.mapId = mapId;
+        this.duration = duration;
+        this.isCountryStreak = isCountryStreak;
+        this.forbidMoving = forbidMoving;
     }
 
     public String getMapId() {
@@ -28,5 +45,13 @@ public class CreateChallengeRequest {
 
     public Integer getDuration() {
         return duration;
+    }
+
+    public boolean isCountryStreak() {
+        return isCountryStreak;
+    }
+
+    public boolean isForbidMoving() {
+        return forbidMoving;
     }
 }

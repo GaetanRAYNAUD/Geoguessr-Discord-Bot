@@ -95,6 +95,15 @@ public class GeoguessrMap {
     @JsonProperty("inExplorerMode")
     private Boolean inExplorerMode;
 
+    public GeoguessrMap() {
+    }
+
+    public GeoguessrMap(String name, String slug, String description) {
+        this.name = name;
+        this.slug = slug;
+        this.description = description;
+    }
+
     public String getId() {
         return id;
     }
