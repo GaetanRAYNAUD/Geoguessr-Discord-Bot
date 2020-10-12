@@ -16,7 +16,7 @@
 
   <properties>
     <java.version>11</java.version>
-    <discord4j.version>3.1.0</discord4j.version>
+    <discord4j.version>3.1.1</discord4j.version>
     <common-langs.version>3.11</common-langs.version>
   </properties>
 

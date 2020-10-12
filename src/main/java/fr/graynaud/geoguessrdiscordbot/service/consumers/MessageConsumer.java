@@ -12,4 +12,6 @@ public interface MessageConsumer {
     String getDescription();
 
     String getExample();
+
+    default void onLogout() {}
 }

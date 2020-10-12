@@ -3,6 +3,7 @@ package fr.graynaud.geoguessrdiscordbot.service;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import fr.graynaud.geoguessrdiscordbot.common.Constants;
 import fr.graynaud.geoguessrdiscordbot.config.ApplicationProperties;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DiscordServiceImpl implements DiscordService {
@@ -35,6 +37,7 @@ public class DiscordServiceImpl implements DiscordService {
 
     @PreDestroy
     public void onDestroy() {
+        this.consumers.forEach(MessageConsumer::onLogout);
         this.gateway.logout();
     }
 
